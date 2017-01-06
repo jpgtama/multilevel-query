@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Query</title>
+    <script src="angular-1.0.1.min.js"></script>
+
+
+    <style>
+
+        body{
+            height: 800px;
+        }
+
+        .containerWrapper{
+            height: 90%;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        .containerWrapper .name{
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .containerWrapper .name input{
+            width: 556px;
+        }
+        .containerWrapper .rel{
+            display: inline-block;
+        }
+
+        .container{
+            /*float: left;*/
+            display: inline-block;
+            border:1px dashed lightseagreen;
+            width: 50%;
+            height: 72%;
+        }
+
+        .dialog .container{
+            width: 80%;
+        }
+
+        .toolBar{
+            margin-left: 10px;
+            /*float: left;*/
+            display: inline-block;
+            vertical-align: top;
+            width: 50px;
+            height: 72%;
+            border: 1px dotted lightgray;
+            /*display: flex;*/
+            flex-direction: column;
+            padding:5px;
+        }
+
+        .toolBar > *{
+            margin-bottom: 5px;
+        }
+
+        .criteriaWrapper {
+            position: relative;
+            padding:5px;
+        }
+
+        .criteriaWrapper > *{
+            vertical-align: middle;
+        }
+
+        .criteria {
+            border:1px solid blue;
+
+            width: 60%;
+            height:20px;
+            margin:10px;
+            display: inline-block;
+            position:relative;
+        }
+
+        .criteria .group{
+            cursor: pointer;
+        }
+
+        .criteria .group:hover{
+            background-color: aquamarine;
+        }
+
+
+        .delete{
+            /*position: absolute;*/
+            top: 0px;
+            left: 63%;
+            cursor:pointer;
+        }
+
+
+        .selector{
+            /*position: absolute;*/
+            transform: scale(1.5);
+        }
+
+        .groupOperation{
+            border:1px dotted lightseagreen;
+            width: 50%;
+            height: 30px;
+            margin-bottom: 20px;;
+            display: flex;
+        }
+
+        .groupOperation > *{
+            margin-right: 10px;;
+        }
+
+
+        .dialog{
+            border: 1px solid gray;
+            position: fixed;
+            top: 50%;                  /* 距顶部50%*/
+            left: 50%;                  /* 距左边50%*/
+            height: 400px; margin-top: -200px;   /*margin-top为height一半的负值*/
+            width: 800px; margin-left: -400px;    /*margin-left为width一半的负值*/
+            /*z-index: 2;*/
+            background-color: white;
+        }
+
+        .dialog .buttonBar{
+            text-align: right;
+            padding-right: 20px;
+        }
+
+        #dialog-cover{
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top:0px;
+            left: 0px;
+            opacity: 0.5;
+            background: #000 none repeat scroll 0% 0%;
+            /*z-index: 2;*/
+        }
+
+    </style>
+
+</head>
+<body>
+
+<!--<div class="criteriaWrapper">-->
+<!--<input class="selector" type="checkbox" />-->
+
+<!--<div class="criteria">-->
+<!--<div class="field">-->
+<!--<select>-->
+<!--<option>Field A</option>-->
+<!--<option>Field B</option>-->
+<!--<option>Field C</option>-->
+<!--<option>Field D</option>-->
+<!--<option>Field E</option>-->
+<!--</select>-->
+
+
+<!--<select>-->
+<!--<option>=</option>-->
+<!--<option>&gt;</option>-->
+<!--<option>&lt;</option>-->
+<!--</select>-->
+
+
+<!--<input type="text"/>-->
+
+<!--</div>-->
+
+<!--</div>-->
+
+<!--<span class="delete">X</span>-->
+<!--</div>-->
+
+<!--<div class="criteriaWrapper">-->
+<!--<input class="selector" type="checkbox" />-->
+
+<!--<div class="criteria">-->
+<!--<div class="group" onclick="openDialog()">Condition 1 && Condition 2</div>-->
+<!--</div>-->
+
+<!--<span class="delete">X</span>-->
+<!--</div>-->
+<div id="workbench">
+
+
+</div>
+
+<!--<div class="containerWrapper">-->
+    <!--<div class="groupOperation">-->
+        <!--<button>In Group</button>-->
+        <!--<button>Out Group</button>-->
+    <!--</div>-->
+
+
+    <!--<div class="container">-->
+    <!--</div>-->
+
+    <!--<div class="toolBar">-->
+        <!--<button class="addField" onclick="addField()">Add Field</button>-->
+        <!--<button class="addGroup" onclick="addGroup()">Add Group</button>-->
+    <!--</div>-->
+
+
+<!--</div>-->
+
+
+
+
+
+
+
+
+<!--<div class="field">-->
+    <!--<select>-->
+        <!--<option value="FA">Field A</option>-->
+        <!--<option value="FB">Field B</option>-->
+        <!--<option value="FC">Field C</option>-->
+        <!--<option value="FD">Field D</option>-->
+        <!--<option value="FE">Field E</option>-->
+    <!--</select>-->
+
+
+    <!--<select>-->
+        <!--<option value="eq">=</option>-->
+        <!--<option value="gt">&gt;</option>-->
+        <!--<option value="lt">&lt;</option>-->
+    <!--</select>-->
+
+
+    <!--<input type="text" value=""/>-->
+
+<!--</div>-->
+
+
+
+
+<!--<button onclick="openDialog()">Open Dialog</button>-->
+
+<!--<button onclick="closeDialog()">Close Dialog</button>-->
+<script src="try1.js"></script>
+<script src="DialogManager.js"></script>
+
+<script>
+    var container = new Container();
+    container.placeAt(document.body);
+
+</script>
+
+
+
+
+
+</body>
+</html>

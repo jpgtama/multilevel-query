@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Query</title>
+    <!-- <script src="angular-1.0.1.min.js"></script> -->
+<!--<link type="text/css" rel="stylesheet" href="jquery.autocomplete.css" />                   -->
+<script src="../js/jquery-1.10.1.min.js"></script>
+<script src="../js/mongoDB.js"></script>
+<script src="../js/logic.js"></script>
+<script src="../js/jquery.json.js"></script>
+<script src="../js/aggregate.js"></script>
+<script src="knols.js"></script>
+<script src="nools.min.js"></script>
+<script src="sci.js"></script>
+<script type="text/nools" id="sci_model">
+define Patient {
+    message : "",
+    constructor : function (gender, age){
+        this.gender = gender;
+        this.age = age;
+        this.isQualified = false;
+    }
+}
+
+define Observation {
+    message : "",
+    constructor : function (value){
+        this.value = value;
+        this.isQualified = false;
+    }
+}
+
+</script>
+
+<!--<script src="jquery.autocomplete.js"></script>
+-->
+<script type="text/javascript">
+var states = [
+	'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
+	'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii',
+	'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
+	'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
+	'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+	'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
+	'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
+	'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+	'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+];
+</script>
+
+
+
+    <style>
+
+        body{
+            height: 800px;
+        }
+        .formula{
+            height: 1300px;
+        }
+        .containerWrapper{
+            height: 90%;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        .containerWrapper .name{
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .containerWrapper .name input{
+            width: 556px;
+        }
+        .containerWrapper .rel{
+            display: inline-block;
+        }
+
+        .container{
+            /*float: left;*/
+            display: inline-block;
+            border:1px dashed lightseagreen;
+            width: 70%;
+            height: 72%;
+        }
+
+        .dialog .container{
+            width: 80%;
+        }
+
+        .toolBar{
+            margin-left: 10px;
+            /*float: left;*/
+            display: inline-block;
+            vertical-align: top;
+            width: 50px;
+            height: 72%;
+            border: 1px dotted lightgray;
+            /*display: flex;*/
+            flex-direction: column;
+            padding:5px;
+        }
+
+        .toolBar > *{
+            margin-bottom: 5px;
+        }
+
+        .criteriaWrapper {
+            position: relative;
+            padding:5px;
+        }
+
+        .criteriaWrapper > *{
+            vertical-align: middle;
+        }
+
+        .criteria {
+            border:1px solid blue;
+
+            width: 60%;
+            height:20px;
+            margin:10px;
+            display: inline-block;
+            position:relative;
+        }
+
+        .criteria.formula{
+            height: 200px;
+        }
+        
+        .criteria .group{
+            cursor: pointer;
+        }
+
+        .criteria .group:hover{
+            background-color: aquamarine;
+        }
+
+
+        .delete{
+            /*position: absolute;*/
+            top: 0px;
+            left: 63%;
+            cursor:pointer;
+        }
+
+
+        .selector{
+            /*position: absolute;*/
+            transform: scale(1.5);
+        }
+
+        .groupOperation{
+            border:1px dotted lightseagreen;
+            width: 50%;
+            height: 30px;
+            margin-bottom: 20px;;
+            display: flex;
+        }
+
+        .groupOperation > *{
+            margin-right: 10px;;
+        }
+
+
+        .dialog{
+            border: 1px solid gray;
+            position: fixed;
+            top: 50%;                  /* 距顶部50%*/
+            left: 50%;                  /* 距左边50%*/
+            height: 400px; margin-top: -200px;   /*margin-top为height一半的负值*/
+            width: 1000px; margin-left: -400px;    /*margin-left为width一半的负值*/
+            /*z-index: 2;*/
+            background-color: white;
+        }
+
+        .dialog .buttonBar{
+            text-align: right;
+            padding-right: 20px;
+        }
+
+        #dialog-cover{
+            position: fixed;
+            height: 100%;
+            width: 100%;
+            top:0px;
+            left: 0px;
+            opacity: 0.5;
+            background: #000 none repeat scroll 0% 0%;
+            /*z-index: 2;*/
+        }
+
+    </style>
+<script>
+    function saveQuery(){
+        var containerJson = container.toJson();
+        var dataJson = $.toJSON(containerJson)
+        saveDataToMongo(dataJson)
+       
+    }
+    function process_query_info(data){
+        console.log(JSON.stringify(data))
+        //if data['#and']
+        
+    }
+
+
+    var exampleQueryData = {
+        "#and": {
+            "list": [
+                {
+                    "#and": {
+                        "list": [
+                            {
+                                "#and": {
+                                    "list": [
+                                        {
+                                            "#has_a": {
+                                                "ageGT18": "rule ageGT18{\n    when {\n        p: Patient p.age >= 18\n    }\n    then {\n        modify(p, function(){\n            this.message = '>=18';\n            console.log('>=18');\n            p.isQualified = true;\n            retract(p)\n        });\n    }\n}\n",
+                                                "type": "Question"
+                                            }
+                                        }
+                                    ],
+                                    "type": "Group",
+                                    "title": "Age >=18"
+                                }
+                            },
+                            {
+                                "#and": {
+                                    "list": [
+                                        {
+                                            "#has_a": {
+                                                "ageLT70": "rule ageLT70{\n    when {\n        p: Patient p.age <= 70\n    }\n    then {\n        modify(p, function(){\n            this.message = '<= 70;\n            console.log('<= 70');\n            p.isQualified = true;\n            retract(p)\n        });\n    }\n}\n",
+                                                "type": "Question"
+                                            }
+                                        }
+                                    ],
+                                    "type": "Group",
+                                    "title": "Age<=70"
+                                }
+                            }
+                        ],
+                        "type": "Group",
+                        "title": "18 Years to 70 Years   (Adult, Senior) "
+                    }
+                }
+            ],
+            "type": "Group",
+            "title": "NCT02644603"
+        }
+    };
+
+
+
+    function loadQuery(queryData){
+        // getDataFromMongoDB(process_query_info)
+        new QueryLoader().loadQuery(exampleQueryData)
+    }
+
+    function QueryLoader(){
+
+        this.loadQuery = function(queryData){
+//            queryData = exampleQueryData;
+
+            // get rel
+            var rel = null;
+            var cKeys = Object.keys(queryData);
+            if(cKeys.length !==1){
+                throw 'container should have only one key';
+            }else{
+                var key = cKeys.pop();
+                rel = this.getRelByKey(key);
+            }
+
+            // get name
+            var cContent = queryData[key];
+            var name = cContent['title'];
+
+
+
+            // get criteria list
+            var cl = this.createCriteriaList(cContent['list']);
+
+
+            // create container
+            container = new Container(name, rel, cl);
+            container.placeAt(document.body);
+        };
+
+        this.createCriteriaList = function(list) {
+            var cl = [];
+            list.forEach(l => {
+                var c = this.createCriteria(l);
+            cl.push(c);
+        });
+
+            return cl;
+        };
+
+
+        this.createCriteria = function(obj) {
+            var keys = Object.keys(obj);
+
+            if(keys.length!== 1){
+                throw 'there should be only 1 relation';
+            }else{
+                var key = keys.pop();
+
+                var content = obj[key];
+
+                if(content.hasOwnProperty('type')){
+                    var type = content['type'];
+                    if(type === 'Group'){
+                        return this.createGroup(content, this.getRelByKey(key));
+                    }else if(type === 'Question'){
+                        return this.createField(content, key);
+                    }else{
+                        throw 'only Group type is supported now';
+                    }
+                }else{
+                    return this.createField(content, key);
+                }
+            }
+        };
+
+
+        this.createGroup = function(content, rel) {
+            if(content.hasOwnProperty('list')){
+                var g = new Group(content.title, rel, this.createCriteriaList(content['list']));
+                var criteria = new Criteria(g);
+                return criteria;
+            }else{
+                throw 'no list property in group object'
+            }
+        };
+
+        this.createField = function(content){
+            var f = new Field({
+                shortName: content.shortName
+            });
+
+            var fhirRes = ;
+
+            var value = ;
+
+            var op = ;
+
+            var criteria = new Criteria(f);
+
+            return criteria;
+        };
+
+        this.getRelByKey = function(key){
+            var rel = null;
+            if(key === '#and'){
+                rel = 'and';
+            }else if(key === '#or'){
+                rel = 'or';
+            }else{
+                throw 'only and/or are supported currently.';
+            }
+            return rel;
+        }
+
+    }
+
+
+
+
+
+
+
+</script>
+</head>
+<body>
+<button class="loadQuery" onclick="loadQuery()">Load Query</button>
+<button class="saveQuery" onclick="saveQuery()">Save Query</button>
+<!--<div class="criteriaWrapper">-->
+<!--<input class="selector" type="checkbox" />-->
+
+<!--<div class="criteria">-->
+<!--<div class="field">-->
+<!--<select>-->
+<!--<option>Field A</option>-->
+<!--<option>Field B</option>-->
+<!--<option>Field C</option>-->
+<!--<option>Field D</option>-->
+<!--<option>Field E</option>-->
+<!--</select>-->
+
+
+<!--<select>-->
+<!--<option>=</option>-->
+<!--<option>&gt;</option>-->
+<!--<option>&lt;</option>-->
+<!--</select>-->
+
+
+<!--<input type="text"/>-->
+
+<!--</div>-->
+
+<!--</div>-->
+
+<!--<span class="delete">X</span>-->
+<!--</div>-->
+
+<!--<div class="criteriaWrapper">-->
+<!--<input class="selector" type="checkbox" />-->
+
+<!--<div class="criteria">-->
+<!--<div class="group" onclick="openDialog()">Condition 1 && Condition 2</div>-->
+<!--</div>-->
+
+<!--<span class="delete">X</span>-->
+<!--</div>-->
+
+<textarea  style="display:none" class="template" id="rule_PQ">
+rule rule_PQ{
+    when {
+       ob: Observation ob.value >= 177
+    }
+    then {
+        modify(ob, function(){
+            this.message = 'Observation is qualified';
+            ob.isQualified = true;
+            retract(ob)
+        });
+    }
+}
+</textarea>
+<textarea  style="display:none" class="template" id="ageGT18">
+rule ageGT18{
+    when {
+        p: Patient p.age >= 18
+    }
+    then {
+        modify(p, function(){
+            this.message = '>=18';
+            console.log('>=18');
+            p.isQualified = true;
+            retract(p)
+        });
+    }
+}
+</textarea>
+<textarea  style="display:none" class="template" id="ageLT70">
+rule ageLT70{
+    when {
+        p: Patient p.age <= 70
+    }
+    then {
+        modify(p, function(){
+            this.message = '<= 70;
+            console.log('<= 70');
+            p.isQualified = true;
+            retract(p)
+        });
+    }
+}
+</textarea>
+
+<!--<div class="containerWrapper">-->
+    <!--<div class="groupOperation">-->
+        <!--<button>In Group</button>-->
+        <!--<button>Out Group</button>-->
+        <!--<button>Out Group</button>-->
+    <!--</div>-->
+
+
+    <!--<div class="container">-->
+    <!--</div>-->
+
+    <!--<div class="toolBar">-->
+        <!--<button class="addField" onclick="addField()">Add Field</button>-->
+        <!--<button class="addGroup" onclick="addGroup()">Add Group</button>-->
+    <!--</div>-->
+
+
+<!--</div>-->
+
+
+
+
+
+
+
+
+<!--<div class="field">-->
+    <!--<select>-->
+        <!--<option value="FA">Field A</option>-->
+        <!--<option value="FB">Field B</option>-->
+        <!--<option value="FC">Field C</option>-->
+        <!--<option value="FD">Field D</option>-->
+        <!--<option value="FE">Field E</option>-->
+    <!--</select>-->
+
+
+    <!--<select>-->
+        <!--<option value="eq">=</option>-->
+        <!--<option value="gt">&gt;</option>-->
+        <!--<option value="lt">&lt;</option>-->
+    <!--</select>-->
+
+
+    <!--<input type="text" value=""/>-->
+
+<!--</div>-->
+
+
+
+
+<!--<button onclick="openDialog()">Open Dialog</button>-->
+
+<!--<button onclick="closeDialog()">Close Dialog</button>-->
+<script src="nest.js"></script>
+<script src="DialogManager.js"></script>
+<script type="text/javascript">
+<!--$(function() {
+<!--	$("input").autocomplete({
+<!--		source:[states]
+<!--	}); 
+<!--}); -->
+</script>
+<script>
+    var container = new Container();
+    container.placeAt(document.body);
+
+</script>
+
+
+
+
+
+
+
+
+</body>
+</html>

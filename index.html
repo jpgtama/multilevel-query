@@ -1,0 +1,193 @@
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type='text/javascript' src='./js/jquery-1.10.1.min.js'></script>
+    <script type='text/javascript' src='./js/cdsDrools.js'></script>
+
+    <script>
+        function updateTheRule(){
+            console.log('rule');
+            console.log($('#ruleCodeEnditor').val());
+            version = '1.4'
+            
+            ruleCont = {"ruleContent": $('#ruleCodeEnditor').val()};
+            //myData = {"release-id":{"artifact-id":"hello-kie-server","group-id":"org.mastertheboss.kieserver","version":"1.4"}}
+            icmcDroolsURL = 'http://localhost:6543/iCMC/drools/update'
+            $.ajax({
+                type: 'post',
+                dataType: 'json',
+                url: icmcDroolsURL,
+                data: JSON.stringify(ruleCont),
+                'contentType': 'application/xml; charset=utf-8',
+                success: function(response){
+                        myData = response["msg"]
+                        console.log(myData)
+                        var url = 'http://localhost:8080/kie-server-6.3.0.Final-webc/services/rest/server/containers/myContainer1/release-id'
+                        $.ajax({
+                            type: 'post',
+                            url: url,
+                            dataType: 'xml',
+                            data: myData,
+                            'contentType': 'application/xml; charset=utf-8',
+                            success: function(response){
+                                console.log('success')
+                            },
+                             error: function(data) {
+                                console.log(data)
+                             }
+                            });
+                },
+                error: function(data){
+                }
+                });
+        }
+        
+        function checkField(value){
+            /* this function is obsolete. it is replaced with checkFieldEx in cdsDrools.js */
+            //zuofeng li 2016/04/27
+            //var myData = JSON.parse('{"commands" : [{ "insert" : { "object" : {"com.philips.icmc.Employee":{"clockedAt":19}} } },{ "fire-all-rules" : { } }]}')
+            var pmml_str = $('#PMMLEnditor').val();
+            console.log(pmml_str)
+            var myData = {"commands" : [{ "insert" : { "object" : {"com.philips.icmc.Patient":{"clockedAt":value,"PMMLXmlContent":pmml_str}}, "out-identifier":"patient"} },{"fire-all-rules": { } }]}
+            console.log(myData)
+            var url = 'http://localhost:8080/kie-server-6.3.0.Final-webc/services/rest/server/containers/instances/myContainer1'
+            $.ajax({ 
+                type: 'post', 
+                url: url, 
+                dataType: 'json', 
+                data: JSON.stringify(myData),
+               
+                'contentType': 'application/json; charset=utf-8',
+                success: function(response){
+                        console.log(response);
+                        var results = JSON.parse(response['result'])['results']//response['result'] is string.
+                        for(i=0; i<results.length; i++){
+                            if (results[i].key == 'patient'){
+  
+ 
+                                var responseMsg = results[i].value['com.philips.icmc.Patient']
+                                $('#cds_message').val(responseMsg['message']);
+                            }
+                        }
+                }, 
+                 error: function(data) { 
+                $.messager.alert('info','error'); 
+                } 
+                 }); 
+            
+            
+            
+            
+
+        }
+    </script>
+</head>
+<del>Input any number here: <input id='value1' onchange='checkField(this.value)' size = "10"/></del></p>
+Input any number here (more general implementation): <input id='valueEx' onchange='checkFieldEx("com.philips.icmc.Patient", "clockedAt", this.value, "cds_message")' size = "10"/></p>
+In the below text box, if the number is more than 100, it will show larger; Lower for less than 100.
+Message here: <input id='cds_message' size="70"/>
+</p></p>
+<div>
+<textarea id="ruleCodeEnditor" rows="25" cols="100">
+package com.philips.icmc
+
+import com.philips.icmc.DroolsUtilities;
+import com.philips.icmc.Patient;
+import com.philips.icmc.Message;
+
+rule 'hello'
+when
+	$patient: Patient(clockedAt<100) 
+then
+	System.out.println("Hello, it is less");
+    $patient.setMessage("Less version 1.6: From drools 2016. For demo");
+
+    
+    
+
+end
+
+</textarea>
+<button onclick = "updateTheRule()">Update</button>
+<hr></hr>
+>>>>>>>>use case 2<<<<<<<<<
+<script>
+    function checkConsist(){
+        console.log($('#freetextinput').val())
+        ///ajax
+        ///smoking 10 years.
+        
+        ///{"EFV009":'10'}
+        console.log($('#somking_year').val())
+        $('#somking_year').css("background-color","yellow");
+    }
+</script>
+<form>
+    Lifestyle report:</p>
+    <textarea id= "freetextinput"  rows="5" cols="100">个人史：吸烟史10年，平均20支/日，戒烟2年。</textarea></p>
+    Structured data:</p>
+    <select id= "somking_year">
+        <option value="1">< 5years</option>
+        <option value="2">5-10 years</option>
+        <option value="3">>10 years</option>
+    </select></p>
+    
+    
+    <input type="button" value="Consistence Check" onClick="checkConsist()"/>  <input type="submit">
+</form>
+
+</div>
+
+>>>>>>>>>>>>>>>use case 3 SCI<<<<<<<<<<<<<<<<<<<<<<
+</p><input id="" value="" /><input type="button" onClick="checkAge()" value="check age"/>
+<input id="use_case_3_message" value=""/>
+
+<textarea id="PMMLEnditor" rows="25" cols="100">
+<?xml version="1.0"?>
+<PMML version="4.2" xmlns="http://www.dmg.org/PMML-4_2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_2 http://www.dmg.org/v4-2/pmml-4-2.xsd">
+ <Header copyright="Copyright (c) 2015 vfed" description="Multinomial Logistic Model">
+  <Extension name="user" value="vfed" extender="Rattle/PMML"/>
+  <Application name="Rattle/PMML" version="1.4"/>
+  <Timestamp>2015-08-09 17:44:24</Timestamp>
+ </Header>
+ <DataDictionary numberOfFields="5">
+  <DataField name="Species" optype="categorical" dataType="string">
+   <Value value="setosa"/>
+   <Value value="versicolor"/>
+   <Value value="virginica"/>
+  </DataField>
+  <DataField name="Sepal_Length" code="2951-2" codeSystem="LOINC" displayName="Na" optype="continuous" dataType="double"/>
+  <DataField name="Sepal_Width" code="2823-3" codeSystem="LOINC" displayName="K" optype="continuous" dataType="double"/>
+  <DataField name="Petal_Length" code="2075-0" codeSystem="LOINC" displayName="Cl" optype="continuous" dataType="double"/>
+  <DataField name="Petal_Width" code="2028-9" codeSystem="LOINC" displayName="CO2"  optype="continuous" dataType="double"/>
+ </DataDictionary>
+ <RegressionModel modelName="multinom_Model" functionName="classification" algorithmName="multinom" normalizationMethod="softmax">
+  <MiningSchema>
+   <MiningField name="Species" usageType="predicted"/>
+   <MiningField name="Sepal_Length" usageType="active"/>
+   <MiningField name="Sepal_Width" usageType="active"/>
+   <MiningField name="Petal_Length" usageType="active"/>
+   <MiningField name="Petal_Width" usageType="active"/>
+  </MiningSchema>
+  <Output>
+   <OutputField name="Predicted_Species" feature="predictedValue"/>
+   <OutputField name="Probability_setosa" optype="continuous" dataType="double" feature="probability" value="setosa"/>
+   <OutputField name="Probability_versicolor" optype="continuous" dataType="double" feature="probability" value="versicolor"/>
+   <OutputField name="Probability_virginica" optype="continuous" dataType="double" feature="probability" value="virginica"/>
+  </Output>
+  <RegressionTable intercept="18.6903742569615" targetCategory="versicolor">
+   <NumericPredictor name="Sepal_Length" exponent="1" coefficient="-5.45842400701235"/>
+   <NumericPredictor name="Sepal_Width" exponent="1" coefficient="-8.70740085057496"/>
+   <NumericPredictor name="Petal_Length" exponent="1" coefficient="14.2447701275227"/>
+   <NumericPredictor name="Petal_Width" exponent="1" coefficient="-3.0976838703398"/>
+  </RegressionTable>
+  <RegressionTable intercept="-23.8362760290833" targetCategory="virginica">
+   <NumericPredictor name="Sepal_Length" exponent="1" coefficient="-7.92363397246686"/>
+   <NumericPredictor name="Sepal_Width" exponent="1" coefficient="-15.3707689334244"/>
+   <NumericPredictor name="Petal_Length" exponent="1" coefficient="23.6597792430455"/>
+   <NumericPredictor name="Petal_Width" exponent="1" coefficient="15.1353005480019"/>
+  </RegressionTable>
+  <RegressionTable intercept="0.0" targetCategory="setosa"/>
+ </RegressionModel>
+</PMML>
+
+</textarea>

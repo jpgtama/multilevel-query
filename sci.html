@@ -1,0 +1,292 @@
+<head>
+<link rel="stylesheet" type="text/css" href="../iRules/styles/aggregate.css">
+<!-- <link rel="stylesheet" type="text/css" href="../iRules/styles/jquery.steps.css">-->
+</head>
+    <title>Demo</title>
+        <meta charset="utf-8">
+
+
+
+ <script type='text/javascript' src="../iRules/js/utils.js"></script>
+ <script type='text/javascript' src="../iRules/js/fhir.js"></script>
+ <script type='text/javascript' src="../iRules/js/baseX.js"></script>
+ <script type='text/javascript' src='./js/jquery-1.10.1.min.js'></script>
+ <script type='text/javascript' src='./js/pmml.js'></script>
+ <script type='text/javascript' src='./js/init.js'></script>
+ <script type='text/javascript' src='./js/jquery-uuid.js'></script>
+ <script type='text/javascript' src='./js/jsonTable.js'></script>
+ <script type='text/javascript' src='./js/jquery.tabletojson.js'></script>
+ <script type='text/javascript' src='./js/aggregate.js'></script>
+ <script type='text/javascript' src='./js/jquery.md5.js'></script>
+ <script type='text/javascript' src='./js/cdsDrools.js'></script>
+ <script type='text/javascript' src='./js/jquery.steps.min.js'></script>
+ 
+<script>
+
+$( document ).ready(function(){
+    setContext();
+    getPMMLXMLList();
+    
+    $("#activeFieldTable").jsonTable({
+    head : ['N.', 'Field id','Display name','data type', 'opType', 'Value', 'Action'], // Goes on the <thead>
+    json : ['*', 'id', 'name', 'dataType', 'opType', 'value', 'callback'] //json identities from the loaded json object
+    });
+
+    $("#predictedFieldTable").jsonTable({
+    head : ['N.', 'Field id','Display name','data type', 'opType', 'Value', 'Action'], // Goes on the <thead>
+    json : ['*', 'id', 'name', 'dataType', 'opType', 'value', 'callback'] //json identities from the loaded json object
+    });
+
+
+///for aggregate
+
+            
+
+            $("#btnClose").click(function (e)
+            {
+                HideDialog();
+                e.preventDefault();
+            });
+
+            $("#btnSubmit").click(function (e)
+            {
+                //var brand = $("#brands input:radio:checked").val();
+                var brand = $("#final_value_for_the_field input:radio:checked").val();
+                $("#output").html("<b>Your favorite mobile brand: </b>" + brand);
+                HideDialog();
+                e.preventDefault();
+                //http://stackoverflow.com/questions/6802765/jquery-dealing-with-a-space-in-the-id-attribute
+                //to touch the invalid element name with space in name;
+                
+                var active_element = $('#variableName').val().replaceAll(' ', '\\ ')
+                console.log('#icmc_'+ active_element)
+                $('#icmc_'+ active_element).val(brand) 
+            });
+
+                  
+})
+
+
+ </script>
+ <div >
+    Patient id: <a href="http://52.72.172.54:8080/fhir/baseDstu2/Patient/1081511"><span id="patient_id">1081511</span></a>
+ </div>
+ <div id="">
+    Context: <b><span id="context"></span></b>
+ </div>
+ Step.1 Select a model to be applied
+ <select id = "select_a_model" onchange='getPMMLXML(this.value)'></select>
+ <select id="model_file_type" disabled="disabled">
+    <option value="PMML">Unknown</option>
+    <option value="PMML">PMML XML File</option>
+    <option value="FlatTable">Flat Table</option>
+    <option value="Other">Other</option>
+ </select>
+ </p>
+ <textarea id="PMMLEnditor" rows="25" cols="100">
+ </textarea>
+<div>
+    <div><a href="">Edit the PMML interactively (to be implemented)</a>
+    <div> <a href="http://scn.sap.com/community/predictive-analytics/blog/2015/08/21/visualizing-a-decision-tree-from-hana-pal-using-d3js">Model Visualization</a>
+    </div>
+    <pre>
+    </pre>
+    
+    </div>
+    <div>Deploy the model to the <a href="http://localhost:8080/openscoring/model" target="blank">EVALUATION SERVER</a><input type="button" onclick="deployPMMLModel()" value="Deploy Now!"/><span>Model: <input id="model_id" disabled="disabled" value=""/>
+    <input id="model_type" disabled="disabled" value=""></input>
+    
+    <img id="model_status"/ width=25 height=25></span>
+    
+    </div>
+</div>
+ 
+ 
+ <div id="step2">
+ Step.2 Retrieve and mapping the data elements
+ <input type="button" onClick="getActiveFields(false)" value="Manually type in!"/>
+ <input type="button" onClick="getActiveFields(true)" value="Get data by mapping!"/>
+ <table id="activeFieldTable" border=1>
+    <thead>
+        <tr></tr>
+    </thead>
+    <tbody>
+    </tbody>
+ </table>
+ <div>
+    PMML data elements in FHIR Questionnaire:<input type="button" value="Push to FHIR database" onClick="pushFHIRDataToFHIRByElmentID('Questionnaire', 'fhir_questionnaire', 'questionnaire_resource_id')"/>Resource ID: <input id="questionnaire_resource_id" value="" disabled="disabled"/><br>
+    <textarea id="fhir_questionnaire" rows="15" cols="100"></textarea>
+ </div>
+     <div id="overlay" class="web_dialog_overlay" style="display: none;"></div>
+    
+    <div id="dialog" class="web_dialog" style="display: none;">
+        <input id="variableName" value="" disabled="disabled"/><span></span>
+        <input id="selectedFieldName" value="" disabled="disabled"/>
+        <input id="popup_mode"  value="" disabled="disabled"/>
+    <hr></hr>
+    
+        <table border= 1>
+            <tr>
+                <td>Code</td><td>Code System</td><td>Display Name</td><td>FHIR RESOURCE</td>
+            </tr>
+            <tr>
+                <td>
+                    <input id="code" value=""/>
+                </td>
+                <td>
+                    <select id="codeSystem">
+                        <option value="" selected>Select One</option>
+                        <option value="icd10CM" title="International Classification of Diseases, 10th Revision, Clinical Modification">ICD-10-CM</option>
+                        <option value="PhilipsCDR">PKU1 CDR</option>
+                        <option value="LOINC">LOINC</option>
+                        <option value="FHIR">FHIR</option>
+                        <option value="HL7">HL7</option>
+                    </select>
+                </td>
+                <td>
+                    <input id="displayName" value=""/>
+                </td>
+                <td>
+                    <select id="fhir_resource" onChange="insertOptions4resource(this.value)">
+                        <option value="" selected></option>
+                        <option value="Patient" selected>Patient</option>
+                        <option value="Condition" selected>Condition</option>
+                        <option value="Observation" selected>Observation</option>
+                        <option value="MedicationAdministration" selected>MedicationAdministration</option>
+                        
+                    </select>
+                </td>
+                <td>
+                    <select id="fhir_resource_attrs">
+                    </select>
+                </td>
+            </tr>
+        </table>
+        
+        <table style="width: 100%;" bocellpadding="3" cellspacing="0">
+            <tbody><tr>
+                <td class="web_dialog_title">Online Survey</td>
+                <td class="web_dialog_title align_right">
+                    <a href="javascript:void(0);" id="btnClose">Close</a>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="button" name="retrieve_data" value="retrieve data" onclick="retrieve_data()"/><span id="retrieve_data_message"></span></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding-left: 15px;">
+                    <b>Choose your favorite mobile brand? </b>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding-left: 15px;">
+                    <div id="table_tools"></div>
+                    <div id="brands">
+                        <input id="brand1" name="brand" type="radio" checked="checked" value="0"> 0 </br>
+                        <input id="brand2" name="brand" type="radio" value="1"> 1 </br>
+                        <input id="brand3" name="brand" type="radio" value="2"> 2 </br>
+                        
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    
+                </td>
+            </tr>
+        </tbody></table>
+        <hr></hr>
+        Rule editor:</p>
+        <div>
+            data for rule:</p>
+            <input id="rule_input_data" value=""/></p>
+            <select id="rule_input_data_type">
+                <option value="none">Select one</option>
+                <option value="date">date</option>
+                <option value="concept">concept</option>
+                <option value="quantity">quantity</option>
+                <option value="noneConcept">noneConcept</option>
+                <option value="none">none</option>
+            </select>
+        </div>
+        
+        <div>
+            <input id="loadRuleForTheVariableBTN" type="button" onClick="loadRuleForVariable()" value="Load rule for this variable"/>Based on the variable id and context.
+        </div>
+        <textarea id="ruleCodeEnditor" rows="5" cols="100"></textarea>
+        
+        
+        
+        <hr></hr>
+        
+        <input type="button" onClick="" value="Registry or Update The rules"/></p>
+        <input id="executeRulsBTN" type="button" onClick="executeRuls()" value="Execute the rule"/></p>
+        <input id="drools_results" value=""/><input type="button" value="AssignValue" onClick="assign_value()"/>
+        
+        <div id= "final_value_for_the_field">
+        
+        </div>
+        
+        <input id="btnSubmit" type="button" value="Submit">
+        </div>
+        <div>
+        </div>
+        
+    </div>
+ 
+ </p>
+ <div id= "step3">
+ Step.3 Define the predicted fields <input type="button" value="Config prediction field" onClick="getTargetFields()"/></br>
+ <table id="predictedFieldTable" border=1>
+    <thead>
+        <tr></tr>
+    </thead>
+    <tbody>
+    </tbody>
+ </table>
+ 
+ <input id="precition_outcome" disabled="disabled" value=""></input>
+ </div>
+ 
+ 
+ <div id="step4">
+    Step.4 Get the model evaluation score <input type="button" value="Evaluate it now" onClick="evaluatePMMLModel()"/>
+    <div id="step4-1">
+     <div id="prediction_results_section">
+        Predicted class: <input id="prediction_class" value="" disabled="disabled"/>
+        Predicted probability: <input id="prediction_probability" value="" disabled="disabled"/>
+     </div>
+   </div>   
+
+
+   <div id="step4-2">
+        Step.4-2 Wrap the inputs in FHIR QuestionnaireResponse <input type="button" value="Push to FHIR database" onClick="pushFHIRDataToFHIRByElmentID('QuestionnaireResponse', 'fhir_questionnaire_response', 'questionnaireResponse_resource_id')"/>Resource ID: <input id="questionnaireResponse_resource_id" value="" disabled="disabled"/>
+        <div>
+            <textarea id="fhir_questionnaire_response" rows="15" cols="100"></textarea>
+        </div>
+    </div>
+
+ </div>
+ <div id="step5">
+    Step.5 get FHIR RiskAssessment resource <input type="button" value="Wrap up the Prediction Results in FHIR" onClick="convertPMMLRlts2FHIR()"/><span>||</span><input type="button" value="Push to FHIR database" onClick="pushFHIRDataToFHIRByElmentID('RiskAssessment', 'fhir_riskassessment', 'RiskAssessment_resource_id')"/>Resource ID: <input id="RiskAssessment_resource_id" value="" disabled="disabled"/></br>
+    <textarea id="fhir_riskassessment" rows="15" cols="100">
+    </textarea>
+ </div>
+ <div id= "step7">
+    Step.6 Get the clinical decision support information based on the prediction.
+    <input type="button" value="Get decision support information"/>
+ </div>
+ 
+ 
+ </div>
+ </p>References:
+<a href="http://www.kdigo.org/clinical_practice_guidelines/pdf/KDIGO%20AKI%20Guideline.pdf">clinical_practice_guidelines for AKI</a>

@@ -1,0 +1,52 @@
+function checkFieldEx(classNameStr, instanceFeatureStr, instanceValue){
+            var pmml_str = $('#PMMLEnditor').val().replace('\n', ' ').replace(/"/g, '\\"')
+            console.log(classNameStr, instanceFeatureStr, instanceValue)
+            //var myData = JSON.parse('{"commands" : [{ "insert" : { "object" : {"com.philips.icmc.Employee":{"clockedAt":19}} } },{ "fire-all-rules" : { } }]}')
+            
+            //var myData = {"commands" : [{ "insert" : { "object" : {"com.philips.icmc.Patient":{"clockedAt":value}}, "out-identifier":"patient"} },{"fire-all-rules": { } }]}
+            
+            var myData = {"commands" : []}
+            //var myData = {"commands" : [{ "insert" : { "object" : {}, "out-identifier":"patient"} },{"fire-all-rules": { } }]}
+            var myData = {"commands" : [] }
+            //{"insert":{"entry-point":"my stream", "out-identifier":"john","return-object":false,"object":{"org.drools.test.Person":{"name":"john","age":25}}}}
+            var oneInsert = { "insert" : { "object" : {}, "out-identifier":"patient"} }
+            oneInsert.insert.object[classNameStr] = {}
+            oneInsert.insert.object[classNameStr][instanceFeatureStr] = instanceValue;
+            myData.commands.push(oneInsert)
+            //myData.commands[0].insert.object[classNameStr] = {}.insert.object[classNameStr][instanceFeatureStr] = instanceValue;
+            //myData.commands[0]
+            myData.commands.push({"fire-all-rules": {} })
+            
+            //myData.commands[0].insert.object[classNameStr]['PMMLXmlContent'] = '<pmml></pmml>';
+            var myData = {"commands" : [{ "insert" : { "com.philips.icmc.Patient" : {"clockedAt":12}, "out-identifier":"patient"} },{"fire-all-rules": { } }]}
+            var myData = {"commands" : [{ "insert" : { "com.philips.icmc.Patient" : {"clockedAt":12}, "out-identifier":"patient"} },{"fire-all-rules": { } }]}
+            //var myData =  {"commands" : [{ "insert" : { "object" : "Jona1555"   } },   { "fire-all-rules" : { } }]}
+            var url = 'http://localhost:8080/kie-server-6.3.0.Final-webc/services/rest/server/containers/instances/myContainer1'
+            $.ajax({ 
+                type: 'post', 
+                url: url, 
+                dataType: 'json', 
+                data: JSON.stringify(myData),
+                
+                'contentType': 'application/json; charset=utf-8',
+                success: function(response){
+                        console.log(response);
+                        var results = JSON.parse(response['result'])['results']//response['result'] is string.
+                        for(i=0; i<results.length; i++){
+                            if (results[i].key == 'patient'){
+                                var responseMsg = results[i].value["com.philips.icmc.Patient"]
+                                $('#cds_message').val(responseMsg['message']);
+                            }
+                        }
+                }, 
+                 error: function(data) { 
+                 console.log(data);
+                $.messager.alert('info','error'); 
+                } 
+                 }); 
+            
+            
+            
+            
+
+        }

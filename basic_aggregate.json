@@ -1,0 +1,36 @@
+{
+  "properties": {
+    "codeSystem": {
+        "type": "string",
+        "enum": [
+              "FHIR",
+              "HL7",
+              "ICD-10-CM",
+              "PKU1-CDR",
+              "Anchor"
+            ]
+    },
+    "fhir": {
+      "type": "object",
+      "title": "FHIR",
+      "properties": {
+        "fhir_resource": {
+          "type": "string",
+          "enum": [
+              "Patient",
+              "Condition",
+              "Observation"
+            ]
+        },
+        "fhir_resource_attrs": {
+          "type": "string",
+          "enum": [
+              "birthDate",
+              "1",
+              "2"
+            ]
+        }
+       }
+    }
+  }
+}

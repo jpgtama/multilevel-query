@@ -1,0 +1,44 @@
+{
+  "#and": {
+    "list": [
+      {
+        "#and": {
+          "list": [
+            {
+              "#and": {
+                "list": [
+                  {
+                    "#has_a": {
+                      "ageGT18": "rule ageGT18{\n    when {\n        p: Patient p.age >= 18\n    }\n    then {\n        modify(p, function(){\n            this.message = '>=18';\n            console.log('>=18');\n            p.isQualified = true;\n            retract(p)\n        });\n    }\n}\n",
+                      "type": "Question"
+                    }
+                  }
+                ],
+                "type": "Group",
+                "title": "Age >=18"
+              }
+            },
+            {
+              "#and": {
+                "list": [
+                  {
+                    "#has_a": {
+                      "ageLT70": "rule ageLT70{\n    when {\n        p: Patient p.age <= 70\n    }\n    then {\n        modify(p, function(){\n            this.message = '<= 70;\n            console.log('<= 70');\n            p.isQualified = true;\n            retract(p)\n        });\n    }\n}\n",
+                      "type": "Question"
+                    }
+                  }
+                ],
+                "type": "Group",
+                "title": "Age<=70"
+              }
+            }
+          ],
+          "type": "Group",
+          "title": "18 Years to 70 Years   (Adult, Senior) "
+        }
+      }
+    ],
+    "type": "Group",
+    "title": "NCT02644603"
+  }
+}

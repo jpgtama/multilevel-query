@@ -23,6 +23,14 @@ define Patient {
     }
 }
 
+define Diagnosis {
+    message : "",
+    constructor : function (codeList){
+        this.diagnoses = codeList;
+        this.isQualified = false;
+    }
+}
+
 define Observation {
     message : "",
     constructor : function (value){
@@ -78,11 +86,12 @@ var states = [
         }
 
         .container{
-            /*float: left;*/
             display: inline-block;
             border:1px dashed lightseagreen;
             width: 70%;
             height: 72%;
+            overflow-y: scroll;
+            overflow-x: hidden;
         }
 
         .dialog .container{
@@ -193,15 +202,23 @@ var states = [
 
     </style>
 <script>
+    ///global variables
+    //var fhir_root_url = 'http://52.72.172.54:8080/fhir/baseDstu2/'
+    var fhir_root_url = 'http://localhost:3000/'
+    var patientFhirResourceId = '1'
+    
+    
     function saveQuery(){
         var containerJson = container.toJson();
         var dataJson = $.toJSON(containerJson)
         saveDataToMongo(dataJson)
        
     }
-    function process_query_info(data){
-        console.log(JSON.stringify(data))
-        //if data['#and']
+    function process_query_info(queryData){
+        //console.log(JSON.stringify(data))
+        container.destory();
+        //new QueryLoader().loadQuery(queryData)
+        new QueryLoader().loadQuery(exampleQueryData)
         
     }
 
@@ -213,7 +230,7 @@ var states = [
                     "#and": {
                         "list": [
                             {
-                                "#and": {
+                                "#or": {
                                     "list": [
                                         {
                                             "#has_a": {
@@ -254,8 +271,9 @@ var states = [
 
 
     function loadQuery(queryData){
-        // getDataFromMongoDB(process_query_info)
-        new QueryLoader().loadQuery(exampleQueryData)
+        getDataFromMongoDB(process_query_info)
+        //container.destory();
+        //new QueryLoader().loadQuery(exampleQueryData)
     }
 
     function QueryLoader(){
@@ -336,19 +354,20 @@ var states = [
         };
 
         this.createField = function(content){
-            var f = new Field({
-                shortName: content.shortName
-            });
+            // TODO new Field or Formula, now we use 'shortName' to check
+            if(content.hasOwnProperty('shortName')){
+                // new Field
+                var f = new Field(content);
+                var criteria = new Criteria(f);
 
-            var fhirRes = ;
+                return criteria;
+            }else{
+                // new Formula
+                var formula = new Formula(content);
+                var criteria = new Criteria(formula);
 
-            var value = ;
-
-            var op = ;
-
-            var criteria = new Criteria(f);
-
-            return criteria;
+                return criteria;
+            }
         };
 
         this.getRelByKey = function(key){
@@ -364,11 +383,6 @@ var states = [
         }
 
     }
-
-
-
-
-
 
 
 </script>
@@ -423,7 +437,6 @@ rule rule_PQ{
     }
     then {
         modify(ob, function(){
-            this.message = 'Observation is qualified';
             ob.isQualified = true;
             retract(ob)
         });
@@ -433,12 +446,10 @@ rule rule_PQ{
 <textarea  style="display:none" class="template" id="ageGT18">
 rule ageGT18{
     when {
-        p: Patient p.age >= 18
+        p: Patient p.age >= 18;
     }
     then {
         modify(p, function(){
-            this.message = '>=18';
-            console.log('>=18');
             p.isQualified = true;
             retract(p)
         });
@@ -448,17 +459,32 @@ rule ageGT18{
 <textarea  style="display:none" class="template" id="ageLT70">
 rule ageLT70{
     when {
-        p: Patient p.age <= 70
+        p: Patient p.age <= 70;
     }
     then {
         modify(p, function(){
-            this.message = '<= 70;
-            console.log('<= 70');
             p.isQualified = true;
             retract(p)
         });
     }
 }
+</textarea>
+
+<textarea style="display:none" class="template" id="diagnosisWith">
+rule diagnosisWith{
+    when {
+        d: Diagnosis d.diagnoses.indexOf("11535-2|肝细胞癌|urn:oid:2.16.840.1.113883.3.143.1")>=0;
+    }
+    then {
+            this.message = "The patient is diagnosed with HCC";
+            console.log(this.message);
+            modify(d, function(){
+            d.isQualified = true;
+            retract(d)
+        });
+    }
+}
+
 </textarea>
 
 <!--<div class="containerWrapper">-->

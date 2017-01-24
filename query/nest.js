@@ -10,12 +10,6 @@ function createFieldCriteria(parent) {
 
     var criteria = new Criteria(f);
 
-    // if (parent) {
-    //     criteria.placeAt(parent);
-    // } else {
-    //     criteria.placeAt(container);
-    // }
-
     return criteria;
 }
 
@@ -24,18 +18,9 @@ function createGroupCriteria(criList) {
 
     var criteria = new Criteria(g);
 
-    // if (parent) {
-    //     criteria.placeAt(parent);
-    // } else {
-    //     criteria.placeAt(container);
-    // }
-
     return criteria;
 }
-function validate(){
-    console.log($('div.field'))
-    console.log('validating')
-}
+
 function createFormula(criList){
     var f = new Formula();
     
@@ -250,12 +235,27 @@ function Container(name, rel, criteriaList) {
         var pageData = {}
         pageData['result'] = false;
         var isThereFormula = false;
+        var finalValues = []
+        var groupOperation = this.rel;
+        
         this.criteriaList.forEach(c => {
             if (c.criteriaElement.class == 'formula'){
                 isThereFormula = true
                 //console.log(eval(c.criteriaElement.value))
                 //call_sci(c.criteriaElement.value)
                 pageData['rule_source'] = c.criteriaElement.value
+                reg = /\s*rule\s*(\w+)/gi
+                if(reg.test(pageData['rule_source'])){
+                    //rule_name = 'diagnosisWith'
+                    rule_name = RegExp.$1
+                    //var booleanResult = call_sci(fhir_root_url, patientFhirResourceId, pageData, rule_name)
+                    var booleanResult = call_sci(fhir_root_url, patientFhirResourceId, pageData['rule_source'], rule_name)
+                    finalValues.push(booleanResult)
+                }else{
+                    alert('SEVERE ERROR: the rule format is not correct!')
+                }
+
+                
             }
             
             if(c.criteriaElement.class == 'Field'){
@@ -270,11 +270,22 @@ function Container(name, rel, criteriaList) {
             }
         });
         //var c = validate();
-       console.log(isThereFormula)
+       //console.log(isThereFormula)
         //this.addCriteria(c);
-        
-       var booleanResult = call_sci(pageData)
-	   console.log(booleanResult)
+        console.log(finalValues)
+        if (groupOperation == 'and'){
+            var isThePatientQualified = jsonLogic.apply(
+              {'and': finalValues
+              }
+            )
+        }else{
+            var isThePatientQualified = jsonLogic.apply(
+              {'or': finalValues
+              }
+            )
+        }
+
+	   console.log('The patient is qualified: ', isThePatientQualified)
     });
 
     this.addCriteria = function (cri) {
@@ -417,25 +428,29 @@ function Criteria(criteriaElement) {
 
 
 }
-function Formula(paramArray){
-    this.class = 'formula';
+function Formula(params){
+    // params
+    var defaultParams = {
+        "":""
+    };
 
-    // init params
-    if (paramArray && paramArray.length == 3) {
-        this.field = paramArray[0];
-        this.op = paramArray[1];
-        this.value = paramArray[2];
-        this.dataType = paramArray[2];
-    }
-    
+    params = params || defaultParams;
+
+
+    this.class = 'formula';
 
     var templateHTML =getRuleTemplatesHTML()
     this.templateDom = toDom(templateHTML);
+    var templateName = findOutFormulaTemplateName(params);
+    this.templateDom.value = templateName;
 
     this.opDom = toDom('<select> <option value="has_a">has_a </option><option value="eq">=</option> <option value="gt">&gt;</option> <option value="ge">&ge;</option>  <option value="lt">&lt;</option>  <option value="le">&le;</option> </select>');
 
-    this.dataTypeDom = toDom('<select><option value="codingValue">valueCoding</option></select>')
+    this.dataTypeDom = toDom('<select><option value="codingValue">valueCoding</option></select>');
+
+
     this.valueDom = toDom('<textarea rows="10" cols="60"></textarea>');
+    this.valueDom.value = params[templateName];
 
     this.domWrapper = toDom('<div class="formula" ></div>');
 
@@ -497,18 +512,14 @@ function Formula(paramArray){
 
 function Field(params) {
     // params
-    params = params || {};
+    var defaultParams = {
+        "":""
+    };
 
+    params = params || defaultParams;
 
     this.class = 'Field';
 
-    // init params
-    // if (paramArray && paramArray.length == 3) {
-    //     this.field = paramArray[0];
-    //     this.op = paramArray[1];
-    //     this.value = paramArray[2];
-    //     this.dataType = paramArray[2];
-    // }
     var fieldHtml = getFieldSelectHtml()
 
     this.shortNameDom = toDom('<input value="short name"/>');
@@ -519,6 +530,9 @@ function Field(params) {
     //this.fieldDom = toDom('<select> <option value="DiagnosticReport_codedDiagnosis">The diagnosis lis</option><option value="Patient_birthDate">Birth Date</option> <option value="FB">Procedure.code</option> <option value="FC">Field C</option> <option value="FD">Field D</option> <option value="FE">Field E</option> </select>');
     
     this.fieldDom = toDom(fieldHtml);
+    var fieldName = findOutFieldName(params);
+    this.fieldDom.value = fieldName;
+
 
     //this.opDom = toDom('<select> <option value="has_a">has_a </option><option value="eq">=</option> <option value="gt">&gt;</option> <option value="ge">&ge;</option>  <option value="lt">&lt;</option>  <option value="le">&le;</option> </select>');
     this.opDom = toDom(getActionSelectHtml())
@@ -526,7 +540,10 @@ function Field(params) {
     var dataTypeHTML = getDataTypeHTML()
     //this.dataTypeDom = toDom('<select><option value="codingValue">valueCoding</option></select>')
     this.dataTypeDom = toDom(dataTypeHTML)
+
+
     this.valueDom = toDom('<input type="text" value="222"/>');
+    this.valueDom.value = params[fieldName];
 
     this.domWrapper = toDom('<div class="field"></div>');
 
@@ -554,6 +571,7 @@ function Field(params) {
     });
 
 
+    // append to wrapper and set value
     ['shortNameDom', 'dataTypeDom','resourceDom', 'fieldDom', 'opDom',  'valueDom'].forEach(attr => {
             this.domWrapper.appendChild(this[attr]);
 
@@ -589,6 +607,41 @@ function Field(params) {
         return obj;
     }
 
+}
+
+
+function findOutFieldName(jsonObj) {
+    // excludes field
+    var exNames = ['shortName', 'type'];
+
+    var fieldName = "";
+
+    var keys = Object.keys(jsonObj);
+
+    keys.forEach(k => {
+        if(exNames.indexOf(k)==-1){
+            fieldName = k;
+        }
+    });
+
+    return fieldName;
+}
+
+function findOutFormulaTemplateName(jsonObj) {
+    // excludes field
+    var exNames = [  'type'];
+
+    var fieldName = "";
+
+    var keys = Object.keys(jsonObj);
+
+    keys.forEach(k => {
+        if(exNames.indexOf(k)==-1){
+            fieldName = k;
+        }
+    });
+
+    return fieldName;
 }
 
 

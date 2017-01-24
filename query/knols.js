@@ -10,6 +10,10 @@ var states2 = [
 	'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
 ];
 
+var clinical_terms = [
+    {'code':112, 'display':''}
+]
+
 
 function getResourceHTML(){
     var r_options = []
@@ -61,6 +65,7 @@ function getRuleTemplatesHTML(){
     tpl_options.push('<option value="">Select a template</option>')
     tpl_options.push('<option value="ageGT18">ageGT18</option>')
     tpl_options.push('<option value="ageLT70">ageLT70</option>')
+    tpl_options.push('<option value="diagnosisWith">diagnosisWith</option>')
     tpl_options.push('<option value="rule_PQ">rule_PQ</option>')
     return '<select>' +  tpl_options.join('') + '</select>'
 }
